@@ -15,15 +15,22 @@ var trailingSlash = /[\\\/]$/;
 module.exports = function(input) {
 	var loaderContext = this;
 	var query = loaderUtils.parseQuery(this.query);
+	var forceMinimize = query.minimize;
+	var minimize = typeof forceMinimize !== "undefined" ? !!forceMinimize : (this && this.minimize);
 	var cb = this.async();
 	var isSync = typeof cb !== "function";
 	var finalCb = cb || this.callback;
 	var config = {
 		filename: this.resource,
 		paths: [],
-		relativeUrls: true,
-		compress: !!this.minimize
+		relativeUrls: true
 	};
+	if(query.sourceMap && !minimize) {
+		config.sourceMap = {outputSourceFiles: true, sourceMapBasepath: path.normalize(this.options.context), sourceMapRootpath:'!././'};
+	} else {
+		config.compress = !!this.minimize;
+	}
+
 	var webpackPlugin = {
 		install: function(less, pluginManager) {
 			var WebpackFileManager = getWebpackFileManager(less, loaderContext, query, isSync);
@@ -51,7 +58,11 @@ module.exports = function(input) {
 		if(!finalCb) return;
 		finalCb = null;
 		if(e) return cb(formatLessRenderError(e));
-		cb(null, result.css);
+		if(query.sourceMap && !minimize) {
+			cb(null, result.css, result.map);
+		} else {
+			cb(null, result.css);
+		}
 	});
 };
 
