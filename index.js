@@ -25,11 +25,6 @@ module.exports = function(input) {
 		paths: [],
 		relativeUrls: true
 	};
-	if(query.sourceMap && !minimize) {
-		config.sourceMap = {outputSourceFiles: true, sourceMapBasepath: path.normalize(this.options.context), sourceMapRootpath:'!././'};
-	} else {
-		config.compress = !!this.minimize;
-	}
 
 	var webpackPlugin = {
 		install: function(less, pluginManager) {
@@ -45,6 +40,12 @@ module.exports = function(input) {
 	Object.keys(query).forEach(function(attr) {
 		config[attr] = query[attr];
 	});
+
+	if(query.sourceMap && !minimize) {
+		config.sourceMap = {outputSourceFiles: true, sourceMapBasepath: path.normalize(this.options.context), sourceMapRootpath:'!././'};
+	} else {
+		config.compress = !!this.minimize;
+	}
 
 	// Now we're adding the webpack plugin, because there might have
 	// been added some before via query-options.
